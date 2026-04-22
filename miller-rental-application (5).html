@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rental Application | Miller Rental Properties</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:       #0a0a0a;
+    --black-soft:  #141414;
+    --black-mid:   #1e1e1e;
+    --black-card:  #242424;
+    --gold:        #c9a84c;
+    --gold-light:  #e2c97e;
+    --gold-dim:    #a07c2e;
+    --gold-bg:     #1c1810;
+    --gold-rule:   rgba(201,168,76,0.25);
+    --text:        #f0ede6;
+    --text-mid:    #b8b0a0;
+    --text-muted:  #6e675c;
+    --border:      rgba(201,168,76,0.18);
+    --border-soft: rgba(255,255,255,0.07);
+    --red:         #e05252;
+    --blue-bg:     rgba(99,149,220,0.1);
+    --blue:        #7aaee8;
+    --green:       #6bbf8e;
+    --green-bg:    rgba(107,191,142,0.1);
+    --radius:      10px;
+    --radius-sm:   6px;
+  }
+
+  body { font-family: 'Georgia','Times New Roman',serif; background: var(--black); color: var(--text); min-height: 100vh; }
+
+  .app-header { background: var(--black-soft); border-bottom: 1px solid var(--gold-rule); padding: 26px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left h1 { font-size: 21px; font-weight: normal; color: var(--gold-light); letter-spacing: 0.04em; }
+  .header-left p { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 12px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .header-badge { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--gold-rule); color: var(--gold); padding: 6px 16px; border-radius: 20px; }
+
+  .app-body { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .progress-wrap { margin-bottom: 40px; }
+  .progress-steps { display: flex; align-items: flex-start; }
+  .p-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; cursor: pointer; }
+  .p-step::after { content: ''; position: absolute; top: 15px; left: 50%; width: 100%; height: 1px; background: var(--border); z-index: 0; }
+  .p-step:last-child::after { display: none; }
+  .p-dot { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--black-mid); display: flex; align-items: center; justify-content: center; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); position: relative; z-index: 1; transition: all 0.2s; }
+  .p-step.active .p-dot { background: var(--gold); border-color: var(--gold); color: var(--black); }
+  .p-step.done .p-dot { background: var(--gold-dim); border-color: var(--gold-dim); color: var(--black); }
+  .p-step.done::after { background: var(--gold-dim); }
+  .p-label { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-top: 7px; text-align: center; }
+  .p-step.active .p-label { color: var(--gold); font-weight: 600; }
+  .p-step.done .p-label { color: var(--gold-dim); }
+
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  .sec-header { margin-bottom: 28px; border-left: 3px solid var(--gold); padding-left: 16px; }
+  .sec-header h2 { font-size: 28px; font-weight: normal; color: var(--gold-light); letter-spacing: -0.01em; }
+  .sec-header p { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text-muted); margin-top: 5px; }
+
+  .card { background: var(--black-card); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+  .card-title { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--gold-rule); }
+
+  .row { display: grid; gap: 16px; margin-bottom: 16px; }
+  .row:last-child { margin-bottom: 0; }
+  .col-2 { grid-template-columns: 1fr 1fr; }
+  .col-3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 580px) { .col-2,.col-3 { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
+  .req { color: var(--gold); }
+  .field input, .field select, .field textarea { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 14px; color: var(--text); background: var(--black-mid); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 10px 13px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%; }
+  .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+  .field select option { background: var(--black-mid); color: var(--text); }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+  .field textarea { min-height: 80px; resize: vertical; }
+  .field-note { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  .radio-group, .check-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .radio-opt, .check-opt { display: flex; align-items: center; gap: 7px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text); padding: 8px 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); background: var(--black-mid); cursor: pointer; transition: all 0.15s; user-select: none; }
+  .radio-opt:hover, .check-opt:hover { border-color: var(--gold); background: var(--gold-bg); }
+  .radio-opt input, .check-opt input { accent-color: var(--gold); }
+
+  .alert { border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; line-height: 1.55; margin-bottom: 16px; }
+  .alert-info  { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(99,149,220,0.3); }
+  .alert-warn  { background: rgba(201,168,76,0.08); color: var(--gold-light); border: 1px solid var(--gold-rule); }
+  .alert-green { background: var(--green-bg); color: var(--green); border: 1px solid rgba(107,191,142,0.3); }
+
+  .sub-card { background: var(--black-mid); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 16px; margin-top: 12px; }
+  .sub-card-title { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; font-weight: 600; color: var(--gold); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.07em; }
+
+  /* Payment */
+  .payment-card { background: var(--black-soft); border: 1px solid var(--gold-rule); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; }
+  .payment-card h3 { font-size: 22px; font-weight: normal; color: var(--gold-light); margin-bottom: 6px; }
+  .payment-card .sub { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 22px; }
+  .fee-display { display: flex; align-items: center; justify-content: space-between; background: var(--gold-bg); border: 1px solid var(--gold-rule); border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 22px; }
+  .fee-label { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text-mid); }
+  .fee-amount { font-size: 32px; color: var(--gold-light); }
+  .fee-note { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .steps-list { margin-bottom: 22px; }
+  .step-item { display: flex; gap: 14px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--border-soft); }
+  .step-item:last-child { border-bottom: none; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: var(--black); display: flex; align-items: center; justify-content: center; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .step-text { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text-mid); line-height: 1.55; }
+  .step-text strong { color: var(--text); display: block; margin-bottom: 2px; }
+  .btn-pay { width: 100%; background: var(--gold); color: var(--black); border: none; border-radius: var(--radius-sm); padding: 14px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 0.04em; transition: background 0.15s; }
+  .btn-pay:hover { background: var(--gold-light); }
+  .order-confirm-wrap { display: none; margin-top: 16px; }
+  .pay-confirmed-msg { display: none; margin-top: 10px; background: var(--green-bg); border: 1px solid rgba(107,191,142,0.3); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--green); text-align: center; }
+
+  /* Rentspree */
+  .rentspree-card { background: var(--black-soft); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 26px; margin-bottom: 16px; }
+  .rentspree-card h3 { font-size: 18px; font-weight: normal; color: var(--gold-light); margin-bottom: 6px; }
+  .rentspree-card p { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 18px; }
+  .rs-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 10px; margin-bottom: 18px; }
+  .rs-item { background: var(--black-mid); border: 1px solid var(--gold-rule); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+  .rs-item-title { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 12px; font-weight: 600; color: var(--gold-light); margin-bottom: 3px; }
+  .rs-item-sub { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; color: var(--text-muted); }
+  .btn-rentspree { width: 100%; background: transparent; color: var(--gold); border: 1px solid var(--gold); border-radius: var(--radius-sm); padding: 12px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; letter-spacing: 0.03em; transition: all 0.15s; }
+  .btn-rentspree:hover { background: var(--gold); color: var(--black); }
+
+  /* Consent & sig */
+  .consent-box { background: var(--black-soft); border: 1px solid var(--border-soft); border-left: 3px solid var(--gold); border-radius: var(--radius-sm); padding: 20px 22px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 12.5px; color: var(--text-mid); line-height: 1.8; margin-bottom: 16px; }
+  .consent-box strong { color: var(--gold-light); }
+  .sig-display { border: 1px dashed rgba(201,168,76,0.3); border-radius: var(--radius-sm); padding: 16px; min-height: 60px; font-family: 'Brush Script MT','Segoe Script',cursive; font-size: 28px; color: var(--gold-light); text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 10px; background: var(--black-mid); }
+  .sig-placeholder { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text-muted); font-style: italic; }
+
+  /* Nav */
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; gap: 12px; }
+  .btn-back { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; background: transparent; border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); padding: 10px 22px; cursor: pointer; color: var(--text-mid); transition: all 0.15s; }
+  .btn-back:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-next { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; font-weight: 600; background: var(--gold); color: var(--black); border: none; border-radius: var(--radius-sm); padding: 11px 26px; cursor: pointer; letter-spacing: 0.04em; transition: background 0.15s; }
+  .btn-next:hover { background: var(--gold-light); }
+  .btn-submit { background: var(--gold-light); }
+  .step-count { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 12px; color: var(--text-muted); }
+
+  /* Thank you */
+  .thankyou { display: none; text-align: center; padding: 70px 20px; }
+  .ty-circle { width: 72px; height: 72px; border-radius: 50%; background: var(--gold-bg); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; font-size: 30px; color: var(--gold); }
+  .thankyou h2 { font-size: 30px; font-weight: normal; color: var(--gold-light); margin-bottom: 12px; }
+  .thankyou p { font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 14px; color: var(--text-muted); max-width: 460px; margin: 0 auto 8px; line-height: 1.6; }
+  .ty-contact { margin-top: 30px; background: var(--black-card); border: 1px solid var(--gold-rule); border-radius: var(--radius); padding: 22px 28px; display: inline-block; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 13px; color: var(--text-mid); line-height: 1.7; }
+  .ty-contact strong { color: var(--gold-light); }
+
+  .app-footer { background: var(--black-soft); border-top: 1px solid var(--gold-rule); color: var(--text-muted); text-align: center; padding: 20px; font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 11px; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-left">
+    <h1>Miller Rental Properties</h1>
+    <p>West Columbia, TX &mdash; Rental Application</p>
+  </div>
+  <div class="header-badge">Secure Application</div>
+</div>
+
+<div class="app-body">
+
+  <div class="progress-wrap">
+    <div class="progress-steps" id="progress">
+      <div class="p-step active" onclick="goTo(0)"><div class="p-dot">1</div><div class="p-label">Personal</div></div>
+      <div class="p-step"        onclick="goTo(1)"><div class="p-dot">2</div><div class="p-label">Residence</div></div>
+      <div class="p-step"        onclick="goTo(2)"><div class="p-dot">3</div><div class="p-label">Employment</div></div>
+      <div class="p-step"        onclick="goTo(3)"><div class="p-dot">4</div><div class="p-label">References</div></div>
+      <div class="p-step"        onclick="goTo(4)"><div class="p-dot">5</div><div class="p-label">Payment</div></div>
+      <div class="p-step"        onclick="goTo(5)"><div class="p-dot">6</div><div class="p-label">Screening</div></div>
+      <div class="p-step"        onclick="goTo(6)"><div class="p-dot">7</div><div class="p-label">Sign</div></div>
+    </div>
+  </div>
+
+  <div id="form-body">
+
+    <!-- STEP 1 -->
+    <div class="section visible" id="step-0">
+      <div class="sec-header"><h2>Personal Information</h2><p>All fields marked with * are required.</p></div>
+      <div class="card">
+        <div class="card-title">Applicant details</div>
+        <div class="row col-2">
+          <div class="field"><label>First name <span class="req">*</span></label><input type="text" name="first_name" placeholder="First name" required></div>
+          <div class="field"><label>Last name <span class="req">*</span></label><input type="text" name="last_name" placeholder="Last name" required></div>
+        </div>
+        <div class="row col-3">
+          <div class="field"><label>Date of birth <span class="req">*</span></label><input type="date" name="dob" required></div>
+          <div class="field"><label>Social Security No. <span class="req">*</span></label><input type="password" name="ssn" placeholder="XXX-XX-XXXX" required></div>
+          <div class="field"><label>Driver's license #</label><input type="text" name="dl" placeholder="License number"></div>
+        </div>
+        <div class="row col-2">
+          <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" name="phone" placeholder="(979) 000-0000" required></div>
+          <div class="field"><label>Email <span class="req">*</span></label><input type="email" name="email" placeholder="you@email.com" required></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Unit &amp; move-in</div>
+        <div class="row col-2">
+          <div class="field">
+            <label>Select unit <span class="req">*</span></label>
+            <select name="unit" id="unit_select" onchange="updateUnitSelection()" required>
+              <option value="">Choose a unit...</option>
+              <option value="134">134 Ellis Ln — 2bd/2ba Triplex ($1,350/mo)</option>
+              <option value="136">136 Ellis Ln — 2bd/2ba Triplex ($1,350/mo)</option>
+              <option value="138">138 Ellis Ln — 2bd/2ba Duplex ($1,250/mo)</option>
+            </select>
+          </div>
+          <div class="field"><label>Desired move-in date <span class="req">*</span></label><input type="date" name="movein" required></div>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Number of occupants <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="occupants" value="1"> 1</label>
+            <label class="radio-opt"><input type="radio" name="occupants" value="2"> 2</label>
+            <label class="radio-opt"><input type="radio" name="occupants" value="3"> 3</label>
+            <label class="radio-opt"><input type="radio" name="occupants" value="4+"> 4+</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Do you have pets?</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="pets" value="no"  onchange="togglePets(false)"> No</label>
+            <label class="radio-opt"><input type="radio" name="pets" value="yes" onchange="togglePets(true)"> Yes</label>
+          </div>
+        </div>
+        <div id="pet-details" style="display:none">
+          <div class="sub-card">
+            <div class="sub-card-title">Pet information</div>
+            <div class="row col-3">
+              <div class="field"><label>Type</label><input type="text" name="pet_type" placeholder="Dog, cat, etc."></div>
+              <div class="field"><label>Breed</label><input type="text" name="pet_breed" placeholder="Breed"></div>
+              <div class="field"><label>Weight (lbs)</label><input type="number" name="pet_weight" placeholder="Weight"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-row">
+        <div></div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-count">Step 1 of 7</span>
+          <button class="btn-next" onclick="goTo(1)">Next: Residence History &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="section" id="step-1">
+      <div class="sec-header"><h2>Residence History</h2><p>Provide current and previous addresses covering the last 3 years.</p></div>
+      <div class="card">
+        <div class="card-title">Current address</div>
+        <div class="field" style="margin-bottom:14px"><label>Street address <span class="req">*</span></label><input type="text" name="cur_address" placeholder="123 Main St, City, TX 00000" required></div>
+        <div class="row col-3">
+          <div class="field"><label>Monthly rent <span class="req">*</span></label><input type="text" name="cur_rent" placeholder="$1,000" required></div>
+          <div class="field"><label>Lived there since <span class="req">*</span></label><input type="month" name="cur_since" required></div>
+          <div class="field"><label>Reason for leaving</label><input type="text" name="cur_reason" placeholder="Reason"></div>
+        </div>
+        <div class="row col-2" style="margin-top:0">
+          <div class="field"><label>Landlord / property name</label><input type="text" name="cur_landlord" placeholder="Name or company"></div>
+          <div class="field"><label>Landlord phone</label><input type="tel" name="cur_ll_phone" placeholder="(000) 000-0000"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Previous address</div>
+        <div class="field" style="margin-bottom:14px"><label>Street address</label><input type="text" name="prev_address" placeholder="123 Main St, City, TX 00000"></div>
+        <div class="row col-3">
+          <div class="field"><label>Monthly rent</label><input type="text" name="prev_rent" placeholder="$1,000"></div>
+          <div class="field"><label>Move-in date</label><input type="month" name="prev_from"></div>
+          <div class="field"><label>Move-out date</label><input type="month" name="prev_to"></div>
+        </div>
+        <div class="row col-2" style="margin-top:0">
+          <div class="field"><label>Landlord / property name</label><input type="text" name="prev_landlord" placeholder="Name or company"></div>
+          <div class="field"><label>Landlord phone</label><input type="tel" name="prev_ll_phone" placeholder="(000) 000-0000"></div>
+        </div>
+        <div class="field" style="margin-top:0"><label>Reason for leaving</label><input type="text" name="prev_reason" placeholder="Reason for leaving"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Rental history disclosures</div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Have you ever been evicted or asked to vacate? <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="eviction" value="no"> No</label>
+            <label class="radio-opt"><input type="radio" name="eviction" value="yes"> Yes</label>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Have you ever broken a lease? <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="broke_lease" value="no"> No</label>
+            <label class="radio-opt"><input type="radio" name="broke_lease" value="yes"> Yes</label>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Have you ever filed for bankruptcy? <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="bankruptcy" value="no"> No</label>
+            <label class="radio-opt"><input type="radio" name="bankruptcy" value="yes"> Yes</label>
+          </div>
+        </div>
+        <div class="field"><label>If yes to any above, please explain</label><textarea name="disclosures_explain" placeholder="Provide details..."></textarea></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(0)">&larr; Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-count">Step 2 of 7</span>
+          <button class="btn-next" onclick="goTo(2)">Next: Employment &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="section" id="step-2">
+      <div class="sec-header"><h2>Employment &amp; Income</h2><p>We require gross monthly income of at least 3&times; the monthly rent.</p></div>
+      <div class="alert alert-info"><strong>Income requirement:</strong> $3,750/mo minimum for the $1,250 unit &nbsp;&bull;&nbsp; $4,050/mo minimum for the $1,350 unit</div>
+      <div class="card">
+        <div class="card-title">Current employer</div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Employment status <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="emp_status" value="employed"> Employed</label>
+            <label class="radio-opt"><input type="radio" name="emp_status" value="self_employed"> Self-employed</label>
+            <label class="radio-opt"><input type="radio" name="emp_status" value="retired"> Retired</label>
+            <label class="radio-opt"><input type="radio" name="emp_status" value="other"> Other</label>
+          </div>
+        </div>
+        <div class="row col-2">
+          <div class="field"><label>Employer name <span class="req">*</span></label><input type="text" name="employer" placeholder="Company name" required></div>
+          <div class="field"><label>Job title</label><input type="text" name="job_title" placeholder="Your position"></div>
+        </div>
+        <div class="row col-3">
+          <div class="field"><label>Employer phone</label><input type="tel" name="emp_phone" placeholder="(000) 000-0000"></div>
+          <div class="field"><label>Employer city</label><input type="text" name="emp_city" placeholder="City, TX"></div>
+          <div class="field"><label>Employed since</label><input type="month" name="emp_since"></div>
+        </div>
+        <div class="row col-2">
+          <div class="field"><label>Gross monthly income <span class="req">*</span></label><input type="text" name="monthly_income" id="income_input" placeholder="$0,000" oninput="checkIncome()" required></div>
+          <div class="field"><label>Pay frequency</label><select name="pay_freq"><option>Weekly</option><option>Bi-weekly</option><option selected>Monthly</option><option>Annual salary</option></select></div>
+        </div>
+        <div id="income_warn" class="alert alert-warn" style="display:none;margin-top:4px">Income entered may not meet the 3&times; rent minimum. You may still apply &mdash; a co-signer or additional documentation may be requested.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Additional income (optional)</div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Other income sources</label>
+          <div class="check-group">
+            <label class="check-opt"><input type="checkbox" name="inc_sec8"> Section 8 / Housing voucher</label>
+            <label class="check-opt"><input type="checkbox" name="inc_support"> Child support / Alimony</label>
+            <label class="check-opt"><input type="checkbox" name="inc_ss"> Social Security / Disability</label>
+            <label class="check-opt"><input type="checkbox" name="inc_invest"> Investment income</label>
+          </div>
+        </div>
+        <div class="row col-2">
+          <div class="field"><label>Additional monthly amount</label><input type="text" name="add_income_amt" placeholder="$0,000"></div>
+          <div class="field"><label>Source description</label><input type="text" name="add_income_desc" placeholder="Describe the source"></div>
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(1)">&larr; Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-count">Step 3 of 7</span>
+          <button class="btn-next" onclick="goTo(3)">Next: References &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="section" id="step-3">
+      <div class="sec-header"><h2>References</h2><p>Two personal or professional references who are not family members.</p></div>
+      <div class="card">
+        <div class="card-title">Reference 1</div>
+        <div class="row col-2">
+          <div class="field"><label>Full name <span class="req">*</span></label><input type="text" name="ref1_name" placeholder="Full name" required></div>
+          <div class="field"><label>Relationship <span class="req">*</span></label><input type="text" name="ref1_rel" placeholder="e.g. Supervisor, Colleague" required></div>
+        </div>
+        <div class="row col-2">
+          <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" name="ref1_phone" placeholder="(000) 000-0000" required></div>
+          <div class="field"><label>Email</label><input type="email" name="ref1_email" placeholder="email@example.com"></div>
+        </div>
+        <div class="field"><label>Known how long?</label><input type="text" name="ref1_duration" placeholder="e.g. 3 years"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Reference 2</div>
+        <div class="row col-2">
+          <div class="field"><label>Full name <span class="req">*</span></label><input type="text" name="ref2_name" placeholder="Full name" required></div>
+          <div class="field"><label>Relationship <span class="req">*</span></label><input type="text" name="ref2_rel" placeholder="e.g. Supervisor, Colleague" required></div>
+        </div>
+        <div class="row col-2">
+          <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" name="ref2_phone" placeholder="(000) 000-0000" required></div>
+          <div class="field"><label>Email</label><input type="email" name="ref2_email" placeholder="email@example.com"></div>
+        </div>
+        <div class="field"><label>Known how long?</label><input type="text" name="ref2_duration" placeholder="e.g. 5 years"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Emergency contact</div>
+        <div class="row col-2">
+          <div class="field"><label>Full name <span class="req">*</span></label><input type="text" name="emerg_name" placeholder="Full name" required></div>
+          <div class="field"><label>Relationship <span class="req">*</span></label><input type="text" name="emerg_rel" placeholder="e.g. Parent, Sibling" required></div>
+        </div>
+        <div class="row col-2">
+          <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" name="emerg_phone" placeholder="(000) 000-0000" required></div>
+          <div class="field"><label>Email</label><input type="email" name="emerg_email" placeholder="email@example.com"></div>
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(2)">&larr; Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-count">Step 4 of 7</span>
+          <button class="btn-next" onclick="goTo(4)">Next: Pay Application Fee &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: PAYMENT -->
+    <div class="section" id="step-4">
+      <div class="sec-header"><h2>Application Fee</h2><p>A non-refundable $50 fee is required before your application is reviewed.</p></div>
+
+      <div class="payment-card">
+        <h3>Pay on our website &mdash; powered by Stripe</h3>
+        <p class="sub">Click the button below to be taken to our secure store checkout. Accepted: Visa, Mastercard, Amex, Discover, Apple Pay, Google Pay. Your application will not be reviewed until payment is received.</p>
+        <div class="fee-display">
+          <div>
+            <div class="fee-label">Application fee &mdash; Miller Rental Properties</div>
+            <div class="fee-note">Non-refundable &nbsp;&bull;&nbsp; One per adult applicant (18+)</div>
+          </div>
+          <div style="text-align:right"><div class="fee-amount">$50</div></div>
+        </div>
+        <div class="steps-list">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text"><strong>Click "Pay $50 Now" below</strong>You'll be taken to our secure Stripe checkout on millerrentalproperties.com</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text"><strong>Complete payment with your card or digital wallet</strong>Your card details are never stored on our site &mdash; processed securely by Stripe</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text"><strong>Return here and enter your order confirmation number</strong>You'll find it in your payment receipt email</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div class="step-text"><strong>Continue to finalize your application</strong>Your payment and application will be matched by our team upon review</div>
+          </div>
+        </div>
+
+        <div id="payment_unit_display" style="display:none;margin-bottom:16px;background:var(--gold-bg);border:1px solid var(--gold-rule);border-radius:var(--radius-sm);padding:12px 16px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--gold-light);">
+          <strong style="display:block;margin-bottom:3px;font-size:11px;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);">Paying for unit</strong>
+          <span id="payment_unit_label">—</span>
+          <span style="float:right;font-weight:700;">$50</span>
+        </div>
+        <div id="no_unit_warning" style="display:none;margin-bottom:12px;" class="alert alert-warn">
+          Please go back to Step 1 and select a unit before paying.
+        </div>
+        <!-- ★ REPLACE each URL with the correct Stripe payment link for each property's bank account -->
+        <button class="btn-pay" id="pay_btn" onclick="openPayment()">Pay $50 Now &rarr;</button>
+
+        <div class="order-confirm-wrap" id="order_confirm_wrap">
+          <div class="field" style="margin-top:16px">
+            <label>Payment confirmation / order number <span class="req">*</span></label>
+            <input type="text" id="order_number" name="order_number" placeholder="e.g. ORD-12345 or last 4 of card">
+            <p class="field-note">Found in the receipt email from Stripe after completing checkout.</p>
+          </div>
+          <div class="pay-confirmed-msg" id="pay_confirmed_msg">&#10003; &nbsp;Payment confirmed &mdash; you may proceed to the next step.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warn"><strong>Important:</strong> The $50 application fee is non-refundable and does not guarantee approval of your rental application.</div>
+
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(3)">&larr; Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-count">Step 5 of 7</span>
+          <button class="btn-next" onclick="confirmPayment()">Next: Screening &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6: Screening -->
+    <div class="section" id="step-5">
+      <div class="sec-header"><h2>Background &amp; Credit Screening</h2><p>Authorize your Rentspree screening report to complete your application.</p></div>
+      <div class="rentspree-card">
+        <h3>Screening powered by Rentspree</h3>
+        <p>Miller Rental Properties uses Rentspree to run your credit, background, and eviction check. Reports are delivered directly to our team. The Rentspree screening fee (~$30&ndash;$40) is paid separately on Rentspree's secure site.</p>
+        <div class="rs-grid">
+          <div class="rs-item"><div class="rs-item-title">Credit Report</div><div class="rs-item-sub">Via TransUnion</div></div>
+          <div class="rs-item"><div class="rs-item-title">Background Check</div><div class="rs-item-sub">Criminal history</div></div>
+          <div class="rs-item"><div class="rs-item-title">Eviction History</div><div class="rs-item-sub">National records</div></div>
+          <div class="rs-item"><div class="rs-item-title">Income Verify</div><div class="rs-item-sub">Employment confirm</div></div>
+        </div>
+        <button class="btn-rentspree" onclick="window.open('https://apply.link/czKgmd8','_blank')">Proceed to Rentspree Screening &rarr;</button>
+      </div>
+      <div class="alert alert-green">Your application details will be matched with your Rentspree report automatically when it arrives.</div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(4)">&larr; Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-count">Step 6 of 7</span>
+          <button class="btn-next" onclick="goTo(6)">Next: Review &amp; Sign &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7: Sign -->
+    <div class="section" id="step-6">
+      <div class="sec-header"><h2>Review &amp; Sign</h2><p>Read and electronically sign the authorization below to submit.</p></div>
+      <div class="consent-box">
+        <strong>Applicant Authorization &amp; Consent</strong><br><br>
+        I hereby authorize Miller Rental Properties LLC to verify all information provided in this application, including but not limited to: rental history, employment history, credit history, background check, and eviction records. I understand that a consumer report may be obtained in connection with this application and any future tenancy.<br><br>
+        I authorize Miller Rental Properties LLC to contact my current and previous landlords, employers, and all references listed in this application to verify the information provided.<br><br>
+        I certify that all information provided is true and complete. Any misrepresentation or omission may be grounds for rejection or immediate termination of tenancy.<br><br>
+        <strong>Application Fee:</strong> I confirm payment of the non-refundable $50 application fee. Payment does not guarantee approval.<br><br>
+        <strong>Fair Housing:</strong> Miller Rental Properties LLC complies with all Federal and Texas Fair Housing laws and does not discriminate based on race, color, national origin, religion, sex, familial status, disability, or any other protected class.
+      </div>
+      <div class="card">
+        <div class="card-title">Electronic signature</div>
+        <div class="row col-2">
+          <div class="field"><label>Type your full legal name to sign <span class="req">*</span></label><input type="text" id="sig_name" name="signature" placeholder="Your full legal name" oninput="updateSig()" required></div>
+          <div class="field"><label>Date</label><input type="date" id="sig_date" name="sig_date"></div>
+        </div>
+        <div class="sig-display" id="sig_display"><span class="sig-placeholder">Your signature will appear here after typing your name</span></div>
+        <p class="field-note" style="margin-top:8px">By typing your name above you agree this constitutes your legal electronic signature on this rental application and all authorizations herein.</p>
+      </div>
+      <div class="alert alert-info">After submitting, you'll receive a confirmation email. We review applications within 2&ndash;3 business days and will notify you at the email address provided.</div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(5)">&larr; Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-count">Step 7 of 7</span>
+          <button class="btn-next btn-submit" onclick="submitApp()">Submit Application &#10003;</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /form-body -->
+
+  <div class="thankyou" id="thankyou">
+    <div class="ty-circle">&#10003;</div>
+    <h2>Application Submitted!</h2>
+    <p>Thank you for applying to Miller Rental Properties. We have received your application and payment confirmation.</p>
+    <p style="margin-top:8px">Please ensure your Rentspree screening is complete &mdash; your application is not finalized until the report is received.</p>
+    <div class="ty-contact">
+      Questions? We're here to help.<br>
+      <strong>millerrentalproperties.llc@gmail.com</strong><br>
+      <strong>(979) 241-2520</strong><br>
+      <span style="color:var(--text-muted);font-size:12px">Monday &ndash; Friday &nbsp;&bull;&nbsp; 9 AM &ndash; 5 PM</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="app-footer">
+  &copy; 2026 Miller Rental Properties LLC &mdash; West Columbia, TX &nbsp;&bull;&nbsp; All Rights Reserved &nbsp;&bull;&nbsp; Equal Housing Opportunity
+</div>
+
+<script>
+  let current = 0;
+
+  function goTo(n) {
+    document.querySelectorAll('.section')[current].classList.remove('visible');
+    document.querySelectorAll('.p-step')[current].classList.remove('active');
+    document.querySelectorAll('.p-step')[current].classList.add('done');
+    current = n;
+    document.querySelectorAll('.section')[current].classList.add('visible');
+    document.querySelectorAll('.p-step')[current].classList.remove('done');
+    document.querySelectorAll('.p-step')[current].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function togglePets(show) {
+    document.getElementById('pet-details').style.display = show ? 'block' : 'none';
+  }
+
+  function checkIncome() {
+    const val = parseFloat(document.getElementById('income_input').value.replace(/[^0-9.]/g,''));
+    document.getElementById('income_warn').style.display = (val > 0 && val < 3750) ? 'block' : 'none';
+  }
+
+  // ★ REPLACE these 3 URLs with your actual Stripe payment links
+  // Each Stripe account should be linked to the corresponding property's bank account
+  const PAYMENT_LINKS = {
+    '134': {
+      url:   'https://buy.stripe.com/fZu28t0Kf7lt4yH45w0RG00',
+      label: '134 Ellis Ln — Triplex ($1,350/mo)'
+    },
+    '136': {
+      url:   'https://buy.stripe.com/8x2bJ3dwTbIOaDU2DpdjO00',
+      label: '136 Ellis Ln — Triplex ($1,350/mo)'
+    },
+    '138': {
+      url:   'https://buy.stripe.com/5kQbJ0ddXghDeK18xAcwg00',
+      label: '138 Ellis Ln — Duplex ($1,250/mo)'
+    }
+  };
+
+  function updateUnitSelection() {
+    const unit = document.getElementById('unit_select').value;
+    if (unit && PAYMENT_LINKS[unit]) {
+      document.getElementById('payment_unit_label').textContent = PAYMENT_LINKS[unit].label;
+      document.getElementById('payment_unit_display').style.display = 'block';
+      document.getElementById('no_unit_warning').style.display = 'none';
+    }
+  }
+
+  function openPayment() {
+    const unit = document.getElementById('unit_select') ? document.getElementById('unit_select').value : '';
+    if (!unit || !PAYMENT_LINKS[unit]) {
+      document.getElementById('no_unit_warning').style.display = 'block';
+      document.getElementById('payment_unit_display').style.display = 'none';
+      return;
+    }
+    window.open(PAYMENT_LINKS[unit].url, '_blank');
+    document.getElementById('order_confirm_wrap').style.display = 'block';
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var orderInput = document.getElementById('order_number');
+    if (orderInput) {
+      orderInput.addEventListener('input', function() {
+        document.getElementById('pay_confirmed_msg').style.display = this.value.trim() ? 'block' : 'none';
+      });
+    }
+  });
+
+  function confirmPayment() {
+    var orderInput = document.getElementById('order_number');
+    if (!orderInput || !orderInput.value.trim()) {
+      document.getElementById('order_confirm_wrap').style.display = 'block';
+      orderInput && orderInput.focus();
+      alert('Please complete your $50 payment and enter your order confirmation number to continue.');
+      return;
+    }
+    goTo(5);
+  }
+
+  function updateSig() {
+    const name = document.getElementById('sig_name').value.trim();
+    const display = document.getElementById('sig_display');
+    display.innerHTML = name ? name : '<span class="sig-placeholder">Your signature will appear here after typing your name</span>';
+  }
+
+  function submitApp() {
+    if (!document.getElementById('sig_name').value.trim()) {
+      alert('Please type your full legal name to sign the application.');
+      return;
+    }
+    document.getElementById('form-body').style.display = 'none';
+    document.getElementById('progress').style.display = 'none';
+    document.getElementById('thankyou').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('sig_date').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
